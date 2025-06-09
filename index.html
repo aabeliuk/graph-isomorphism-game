@@ -28,6 +28,7 @@
       touch-action: none;
       width: 100%;
       height: auto;
+      max-height: 100vh;
     }
     #ui {
       text-align: center;
@@ -58,7 +59,7 @@
     const ctx = canvas.getContext("2d");
 
     let WIDTH = window.innerWidth;
-    let HEIGHT = window.innerHeight * 0.6;
+    let HEIGHT = isMobile ? window.innerHeight * 1.0 : window.innerHeight * 0.6;
     const isMobile = window.innerWidth <= 768;
     canvas.width = WIDTH;
     canvas.height = HEIGHT;
