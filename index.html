@@ -46,6 +46,22 @@
     #nextBtn {
       display: none;
     }
+
+    @media (max-width: 768px) {
+      #ui {
+        position: fixed;
+        bottom: 10px;
+        width: 100%;
+        background: white;
+        padding: 10px 0;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        z-index: 10;
+      }
+
+      canvas {
+        margin-bottom: 80px; /* Prevent overlap from fixed button */
+      }
+    }
   </style>
 </head>
 <body>
@@ -137,9 +153,11 @@
 
       graph.nodes.forEach(node => {
         const drop = dropPositions[node];
-        let x = drop.x + Math.random() * spread - spread / 2;
+        let angle = Math.random() * 2 * Math.PI;
+        let distance = 100 + Math.random() * 100; // stay farther away
+        let x = drop.x + distance * Math.cos(angle);
+        let y = drop.y + distance * Math.sin(angle);
         x = Math.max(minX, Math.min(maxX, x));
-        let y = drop.y + Math.random() * spread - spread / 2;
         y = Math.max(minY, Math.min(maxY, y));
         nodePositions[node] = { x, y };
       });
