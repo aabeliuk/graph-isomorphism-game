@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graph Isomorphism Puzzle</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #ffffff;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 20px;
+      font-size: 28px;
+      color: #333;
+    }
+    #levelCounter {
+      margin-top: -10px;
+      font-size: 18px;
+      color: #555;
+    }
+    canvas {
+      display: block;
+      background: #ffffff;
+      margin: 10px auto;
+    }
+    #ui {
+      text-align: center;
+      margin: 10px auto;
+      position: relative;
+      top: -10px;
+    }
+    button {
+      font-size: 16px;
+      margin: 0 10px;
+      padding: 5px 15px;
+    }
+    #nextBtn {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Graph Isomorphism Puzzle</h1>
+  <div id="levelCounter">Level 1</div>
+  <canvas id="gameCanvas" width="850" height="450"></canvas>
+  <div id="ui">
+    <button id="nextBtn" onclick="nextLevel()">Next Level</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+    const NODE_RADIUS = 15;
+    const SNAP_TOLERANCE = 30;
+
+    let level = 1;
+    let graph = {};
+    let fixed = new Set();
+    let draggingNode = null;
+    let offsetX = 0, offsetY = 0;
+
+    const nextBtn = document.getElementById("nextBtn");
+    const levelCounter = document.getElementById("levelCounter");
+
+    function createGraph(n) {
+      const nodes = Array.from({ length: n }, (_, i) => i);
+      const edges = [];
+      const connected = new Set([0]);
+
+      while (connected.size < n) {
+        let a = [...connected][Math.floor(Math.random() * connected.size)];
+        let b = nodes.find(i => !connected.has(i));
+        edges.push([a, b]);
+        connected.add(b);
+      }
+      while (edges.length < n + 1) {
+        let a = Math.floor(Math.random() * n);
+        let b = Math.floor(Math.random() * n);
+        if (a !== b && !edges.some(e => (e[0] === a && e[1] === b) || (e[0] === b && e[1] === a))) {
+          edges.push([a, b]);
+        }
+      }
+      return { nodes, edges };
+    }
+
+    function layoutCircle(nodes, cx, cy, radius) {
+      const pos = {};
+      nodes.forEach((node, i) => {
+        const angle = (2 * Math.PI * i) / nodes.length;
+        pos[node] = {
+          x: cx + radius * Math.cos(angle),
+          y: cy + radius * Math.sin(angle),
+        };
+      });
+      return pos;
+    }
+
+    let targetPositions = {};
+    let dropPositions = {};
+    let nodePositions = {};
+
+    function initLevel() {
+      levelCounter.textContent = `Level ${level}`;
+      const n = level + 4;
+      graph = createGraph(n);
+      fixed = new Set();
+      nextBtn.style.display = "none";
+
+      targetPositions = layoutCircle(graph.nodes, WIDTH / 4, HEIGHT / 2, 120);
+      dropPositions = layoutCircle(graph.nodes, (3 * WIDTH) / 4, HEIGHT / 2, 120);
+
+      nodePositions = {};
+      graph.nodes.forEach(node => {
+        nodePositions[node] = {
+          x: Math.random() * 200 + 600,
+          y: Math.random() * 300 + 100,
+        };
+      });
+
+      draw();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+      drawEdges(graph.edges, targetPositions, '#aaa');
+      drawNodes(targetPositions, BLUE);
+
+      Object.values(dropPositions).forEach(pos => {
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, NODE_RADIUS + 4, 0, Math.PI * 2);
+        ctx.strokeStyle = '#999';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+
+      drawEdges(graph.edges, nodePositions, '#aaa');
+      drawNodes(nodePositions, GREEN, fixed);
+    }
+
+    const BLUE = '#6495ED';
+    const GREEN = '#228B22';
+
+    function drawEdges(edges, positions, color) {
+      ctx.strokeStyle = color;
+      edges.forEach(([a, b]) => {
+        ctx.beginPath();
+        ctx.moveTo(positions[a].x, positions[a].y);
+        ctx.lineTo(positions[b].x, positions[b].y);
+        ctx.stroke();
+      });
+    }
+
+    function drawNodes(positions, color, fixedSet = new Set()) {
+      Object.entries(positions).forEach(([node, pos]) => {
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, NODE_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = fixedSet.has(+node) ? GREEN : color;
+        ctx.fill();
+      });
+    }
+
+    canvas.addEventListener("mousedown", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      for (let [node, pos] of Object.entries(nodePositions)) {
+        if (!fixed.has(+node)) {
+          const dx = mx - pos.x;
+          const dy = my - pos.y;
+          if (dx * dx + dy * dy < NODE_RADIUS * NODE_RADIUS) {
+            draggingNode = +node;
+            offsetX = dx;
+            offsetY = dy;
+            break;
+          }
+        }
+      }
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+      if (draggingNode !== null) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        nodePositions[draggingNode] = { x: mx - offsetX, y: my - offsetY };
+        draw();
+      }
+    });
+
+    canvas.addEventListener("mouseup", () => {
+      if (draggingNode !== null) {
+        const pos = nodePositions[draggingNode];
+        const target = dropPositions[draggingNode];
+        const dx = pos.x - target.x;
+        const dy = pos.y - target.y;
+        if (dx * dx + dy * dy <= SNAP_TOLERANCE * SNAP_TOLERANCE) {
+          nodePositions[draggingNode] = { ...target };
+          fixed.add(draggingNode);
+        }
+        draggingNode = null;
+        draw();
+        if (checkWin()) {
+          setTimeout(() => {
+            alert("✅ Level Complete!");
+            nextBtn.style.display = "inline-block";
+          }, 100);
+        }
+      }
+    });
+
+    function checkWin() {
+      return graph.nodes.every(n => {
+        const p = nodePositions[n];
+        const d = dropPositions[n];
+        const dx = p.x - d.x, dy = p.y - d.y;
+        return dx * dx + dy * dy <= 4;
+      });
+    }
+
+    function nextLevel() {
+      level++;
+      initLevel();
+    }
+
+    initLevel();
+  </script>
+</body>
+</html>
