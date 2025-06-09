@@ -24,7 +24,8 @@
     canvas {
       display: block;
       background: #ffffff;
-      margin: 10px auto;
+      margin: 20px auto;
+      touch-action: none;
     }
     #ui {
       text-align: center;
@@ -45,7 +46,7 @@
 <body>
   <h1>Graph Isomorphism Puzzle</h1>
   <div id="levelCounter">Level 1</div>
-  <canvas id="gameCanvas" width="850" height="450"></canvas>
+  <canvas id="gameCanvas" width="900" height="600"></canvas>
   <div id="ui">
     <button id="nextBtn" onclick="nextLevel()">Next Level</button>
   </div>
@@ -166,11 +167,23 @@
       });
     }
 
-    canvas.addEventListener("mousedown", (e) => {
+    function getEventPosition(e) {
       const rect = canvas.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
+      if (e.touches) {
+        return {
+          x: e.touches[0].clientX - rect.left,
+          y: e.touches[0].clientY - rect.top
+        };
+      } else {
+        return {
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top
+        };
+      }
+    }
 
+    function handleStart(e) {
+      const { x: mx, y: my } = getEventPosition(e);
       for (let [node, pos] of Object.entries(nodePositions)) {
         if (!fixed.has(+node)) {
           const dx = mx - pos.x;
@@ -183,19 +196,17 @@
           }
         }
       }
-    });
+    }
 
-    canvas.addEventListener("mousemove", (e) => {
+    function handleMove(e) {
       if (draggingNode !== null) {
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
+        const { x: mx, y: my } = getEventPosition(e);
         nodePositions[draggingNode] = { x: mx - offsetX, y: my - offsetY };
         draw();
       }
-    });
+    }
 
-    canvas.addEventListener("mouseup", () => {
+    function handleEnd() {
       if (draggingNode !== null) {
         const pos = nodePositions[draggingNode];
         const target = dropPositions[draggingNode];
@@ -214,7 +225,15 @@
           }, 100);
         }
       }
-    });
+    }
+
+    canvas.addEventListener("mousedown", handleStart);
+    canvas.addEventListener("mousemove", handleMove);
+    canvas.addEventListener("mouseup", handleEnd);
+
+    canvas.addEventListener("touchstart", (e) => { handleStart(e); });
+    canvas.addEventListener("touchmove", (e) => { handleMove(e); });
+    canvas.addEventListener("touchend", () => { handleEnd(); });
 
     function checkWin() {
       return graph.nodes.every(n => {
