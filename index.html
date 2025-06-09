@@ -26,6 +26,8 @@
       background: #ffffff;
       margin: 20px auto;
       touch-action: none;
+      width: 100%;
+      height: auto;
     }
     #ui {
       text-align: center;
@@ -55,8 +57,12 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    const WIDTH = canvas.width;
-    const HEIGHT = canvas.height;
+    let WIDTH = window.innerWidth;
+    let HEIGHT = window.innerHeight * 0.6;
+    const isMobile = window.innerWidth <= 768;
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
+
     const NODE_RADIUS = 15;
     const SNAP_TOLERANCE = 30;
 
@@ -113,15 +119,26 @@
       fixed = new Set();
       nextBtn.style.display = "none";
 
-      targetPositions = layoutCircle(graph.nodes, WIDTH / 4, HEIGHT / 2, 120);
-      dropPositions = layoutCircle(graph.nodes, (3 * WIDTH) / 4, HEIGHT / 2, 120);
+      targetPositions = isMobile ? layoutCircle(graph.nodes, WIDTH / 2, HEIGHT / 4, 120)
+                                  : layoutCircle(graph.nodes, WIDTH / 4, HEIGHT / 2, 120);
+      dropPositions = isMobile ? layoutCircle(graph.nodes, WIDTH / 2, (3 * HEIGHT) / 4, 120)
+                                : layoutCircle(graph.nodes, (3 * WIDTH) / 4, HEIGHT / 2, 120);
 
       nodePositions = {};
+      const margin = 60;
+      const spread = 300;
+      const minX = margin;
+      const maxX = WIDTH - margin;
+      const minY = margin;
+      const maxY = HEIGHT - margin;
+
       graph.nodes.forEach(node => {
-        nodePositions[node] = {
-          x: Math.random() * 200 + 600,
-          y: Math.random() * 300 + 100,
-        };
+        const drop = dropPositions[node];
+        let x = drop.x + Math.random() * spread - spread / 2;
+        x = Math.max(minX, Math.min(maxX, x));
+        let y = drop.y + Math.random() * spread - spread / 2;
+        y = Math.max(minY, Math.min(maxY, y));
+        nodePositions[node] = { x, y };
       });
 
       draw();
