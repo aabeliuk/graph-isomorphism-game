@@ -32,6 +32,7 @@
       height: auto;
       box-sizing: border-box;
       min-height: 400px;
+      max-height: none;
     }
     #ui {
       text-align: center;
@@ -50,13 +51,13 @@
 
     @media (max-width: 768px) {
       #ui {
-        position: fixed;
-        bottom: 0;
+        position: relative;
+        margin-top: 20px;
         width: 100%;
         background: white;
         padding: 10px 0;
-        box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-        z-index: 10;
+        box-shadow: none;
+        z-index: 1;
       }
       canvas {
         margin-bottom: 140px;
@@ -155,7 +156,7 @@
       graph.nodes.forEach(node => {
         const drop = dropPositions[node];
         let angle = Math.random() * 2 * Math.PI;
-        let distance = 100 + Math.random() * 100; // stay farther away
+        let distance = 100 + Math.random() * 100;
         let x = drop.x + distance * Math.cos(angle);
         let y = drop.y + distance * Math.sin(angle);
         x = Math.max(minX, Math.min(maxX, x));
@@ -260,8 +261,8 @@
         if (checkWin()) {
           setTimeout(() => {
             alert("✅ Level Complete!");
-            nextBtn.style.display = "inline-block";
-          }, 100);
+            nextLevel();
+          }, 300);
         }
       }
     }
