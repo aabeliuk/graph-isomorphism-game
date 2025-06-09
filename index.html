@@ -6,6 +6,8 @@
   <title>Graph Isomorphism Puzzle</title>
   <style>
     body {
+      overflow-y: scroll;
+      overscroll-behavior-y: contain;
       margin: 0;
       font-family: sans-serif;
       background: #ffffff;
@@ -28,7 +30,7 @@
       touch-action: none;
       width: 100%;
       height: auto;
-      max-height: 100vh;
+      max-height: none;
     }
     #ui {
       text-align: center;
@@ -127,7 +129,7 @@
 
       nodePositions = {};
       const margin = 60;
-      const spread = 300;
+      const spread = isMobile ? 400 : 500;
       const minX = margin;
       const maxX = WIDTH - margin;
       const minY = margin;
