@@ -58,13 +58,13 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
+    const isMobile = window.innerWidth <= 768;
     let WIDTH = window.innerWidth;
     let HEIGHT = isMobile ? window.innerHeight * 1.0 : window.innerHeight * 0.6;
-    const isMobile = window.innerWidth <= 768;
     canvas.width = WIDTH;
     canvas.height = HEIGHT;
 
-    const NODE_RADIUS = 15;
+    const NODE_RADIUS = isMobile ? 10 : 15;
     const SNAP_TOLERANCE = 30;
 
     let level = 1;
