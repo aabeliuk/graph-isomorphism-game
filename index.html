@@ -30,7 +30,8 @@
       touch-action: none;
       width: 100%;
       height: auto;
-      max-height: none;
+      max-height: 100vh;
+      box-sizing: border-box;
     }
     #ui {
       text-align: center;
@@ -50,16 +51,15 @@
     @media (max-width: 768px) {
       #ui {
         position: fixed;
-        bottom: 10px;
+        bottom: 0;
         width: 100%;
         background: white;
         padding: 10px 0;
         box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
         z-index: 10;
       }
-
       canvas {
-        margin-bottom: 80px; /* Prevent overlap from fixed button */
+        margin-bottom: 120px;
       }
     }
   </style>
